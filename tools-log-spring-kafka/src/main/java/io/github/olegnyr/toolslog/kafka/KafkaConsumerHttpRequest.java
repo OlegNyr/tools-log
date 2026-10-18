@@ -99,18 +99,13 @@ public class KafkaConsumerHttpRequest<K, V> implements HttpRequest {
             // Служебные header'ы Logbook'овской цепочки — payload-snapshot от
             // SaverForLogPayload и UUID-маркер от LogbookKafkaRecordInterceptor —
             // не должны попадать в исходящий лог как обычные заголовки.
-            if (isInternalHeader(header.key())) {
+            if (InternalHeaders.isInternal(header.key())) {
                 continue;
             }
             headers = headers.update(header.key(), getDisplayString(header.value()));
         }
         headers = headers.update("key", ObjectUtils.getDisplayString(record.key()));
         return headers;
-    }
-
-    private static boolean isInternalHeader(String key) {
-        return key.startsWith(HEADER_ATTRIBUTE_NAME)
-                || key.startsWith(LogbookKafkaRecordInterceptor.STAGE_HEADER_PREFIX);
     }
 
     private static String getDisplayString(byte[] value) {

@@ -8,7 +8,7 @@ description: How to add and use the tools-log logging library (io.github.olegnyr
 Библиотека даёт сервису одной связкой: JSON-лог (одна строка на событие, формат близок к ECS),
 журнал обменов Logbook для входящего HTTP и Kafka, маскирование секретов во всех строках лога
 запроса и проброс MDC через потоки и Kafka. Java 21, Spring Boot 4, Jackson 3, группа
-`io.github.olegnyr`, версия — последняя в Maven Central (на момент написания `0.1.0`).
+`io.github.olegnyr`, версия — последняя в Maven Central (на момент написания `0.1.1`).
 
 Справка по полям лога, логгерам, свойствам и классам — `reference/reference.md`. Читать, когда нужен
 точный ключ, поле JSON или сигнатура.

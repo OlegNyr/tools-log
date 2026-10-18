@@ -35,7 +35,13 @@ public class SaverForLogPayload<T> implements Deserializer<T> {
     @Override
     public T deserialize(String topic, Headers headers, ByteBuffer data) {
         if (data != null) {
-            headers.add(HEADER_ATTRIBUTE_NAME, data.array());
+            // Буфер — срез буфера пачки: своя запись лежит между position и limit, а array()
+            // вернул бы всю пачку (и упал бы на direct- и read-only-буфере). Копия идёт
+            // через duplicate(), чтобы делегат получил буфер нетронутым.
+            ByteBuffer snapshot = data.duplicate();
+            byte[] payload = new byte[snapshot.remaining()];
+            snapshot.get(payload);
+            headers.add(HEADER_ATTRIBUTE_NAME, payload);
         }
         return delegate.deserialize(topic, headers, data);
     }

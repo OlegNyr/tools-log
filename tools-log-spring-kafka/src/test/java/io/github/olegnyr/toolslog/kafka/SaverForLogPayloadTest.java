@@ -4,6 +4,7 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
@@ -45,7 +46,7 @@ class SaverForLogPayloadTest {
     }
 
     @Test
-    void deserializeByteBuffer_shouldCopyBufferArrayIntoHeader() {
+    void deserializeByteBuffer_shouldCopyPayloadIntoHeader() {
         Deserializer<String> delegate = new Deserializer<>() {
             @Override
             public String deserialize(String topic, byte[] bytes) {
@@ -67,6 +68,61 @@ class SaverForLogPayloadTest {
         Header h = headers.lastHeader(HEADER_ATTRIBUTE_NAME);
         assertThat(h).isNotNull();
         assertThat(new String(h.value(), StandardCharsets.UTF_8)).isEqualTo("payload-bb");
+    }
+
+    @Test
+    @DisplayName("Срез буфера пачки: в заголовке только тело своей записи, буфер делегата не сдвинут")
+    void deserializeByteBuffer_shouldCopyOnlyOwnRecord_whenBufferIsSliceOfBatch() {
+        byte[] batch = "AAAA{\"id\":1}BBBB".getBytes(StandardCharsets.UTF_8);
+        ByteBuffer slice = ByteBuffer.wrap(batch, 4, 8).slice();
+        ByteBuffer wrapped = ByteBuffer.wrap(batch, 4, 8);
+
+        assertOwnRecordInHeader(slice);
+        assertOwnRecordInHeader(wrapped);
+    }
+
+    @Test
+    @DisplayName("Direct-буфер не падает, в заголовке тело записи")
+    void deserializeByteBuffer_shouldCopyPayload_whenBufferIsDirect() {
+        byte[] body = "{\"id\":1}".getBytes(StandardCharsets.UTF_8);
+        ByteBuffer direct = ByteBuffer.allocateDirect(body.length);
+        direct.put(body).flip();
+
+        assertOwnRecordInHeader(direct);
+    }
+
+    @Test
+    @DisplayName("Read-only-буфер не падает, в заголовке тело записи")
+    void deserializeByteBuffer_shouldCopyPayload_whenBufferIsReadOnly() {
+        ByteBuffer readOnly = ByteBuffer.wrap("{\"id\":1}".getBytes(StandardCharsets.UTF_8)).asReadOnlyBuffer();
+
+        assertOwnRecordInHeader(readOnly);
+    }
+
+    private static void assertOwnRecordInHeader(ByteBuffer data) {
+        Deserializer<String> delegate = new Deserializer<>() {
+            @Override
+            public String deserialize(String topic, byte[] bytes) {
+                return null;
+            }
+
+            @Override
+            public String deserialize(String topic, Headers headers, ByteBuffer buffer) {
+                return StandardCharsets.UTF_8.decode(buffer.duplicate()).toString();
+            }
+        };
+        SaverForLogPayload<String> saver = new SaverForLogPayload<>(delegate);
+        Headers headers = new RecordHeaders();
+        int position = data.position();
+        int limit = data.limit();
+
+        String result = saver.deserialize("t", headers, data);
+
+        assertThat(new String(headers.lastHeader(HEADER_ATTRIBUTE_NAME).value(), StandardCharsets.UTF_8))
+                .isEqualTo("{\"id\":1}");
+        assertThat(result).as("делегат получает то же тело").isEqualTo("{\"id\":1}");
+        assertThat(data.position()).isEqualTo(position);
+        assertThat(data.limit()).isEqualTo(limit);
     }
 
     @Test

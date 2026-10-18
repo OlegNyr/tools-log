@@ -108,6 +108,11 @@ public class KafkaProducerHttpRequest<K, V> implements HttpRequest {
     public HttpHeaders getHeaders() {
         HttpHeaders headers = HttpHeaders.empty();
         for (Header header : record.headers()) {
+            // Запись, собранная из ConsumerRecord (DLT, forward), несёт служебные заголовки
+            // потребителя, в том числе снимок тела — в лог они не пишутся.
+            if (InternalHeaders.isInternal(header.key())) {
+                continue;
+            }
             headers = headers.update(header.key(), getDisplayString(header.value()));
         }
         headers = headers.update("key", ObjectUtils.getDisplayString(record.key()));

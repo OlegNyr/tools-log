@@ -86,7 +86,7 @@ Java 21, Spring Boot 4, Jackson 3. Модули `api`, `core`, `logback`, `logbo
 
 ```xml
 <properties>
-    <tools-log.version>0.1.0</tools-log.version>
+    <tools-log.version>0.1.1</tools-log.version>
 </properties>
 
 <dependency>
