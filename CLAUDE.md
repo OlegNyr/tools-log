@@ -36,6 +36,8 @@ Jackson 3: JSON-лог Logback, Logbook для HTTP и Kafka, маскирова
 `ServletLogAutoConfiguration`) и `SpringStructuredLogEncoder`; servlet и logback у него optional.
 `spring-kafka` — Spring Kafka, своей автоконфигурации нет: бины сервис собирает билдерами.
 Границы и правила — `.claude/rules/contribution.md`, стиль кода — `.claude/rules/codestyle.md`.
+Как пользоваться библиотекой в сервисе — скил `.claude/skills/tools-log/` (он же для потребителей):
+при изменении внешнего контракта (модули, `toolslog.*`, классы API, поля лога) обновлять и его.
 
 ## Сквозные механизмы
 

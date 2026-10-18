@@ -324,6 +324,19 @@ Filter logbookFilter = new LogbookFilter(logbook);
 Свойства: `name`, `version`, `environment`, `nodeName`, `commit`, `system`, `service`, `reporter`;
 `pid` — текущего процесса.
 
+## Скил для Claude Code
+
+`.claude/skills/tools-log/` — инструкция для LLM-ассистента: какие модули подключить, как настроить
+`logback-spring.xml` и `toolslog.*`, как маскировать секреты и ПДн, собрать Kafka-бины, проверить
+в тестах. Поставить в свой сервис:
+
+```bash
+git clone --depth 1 https://github.com/OlegNyr/tools-log.git /tmp/tools-log
+mkdir -p .claude/skills && cp -r /tmp/tools-log/.claude/skills/tools-log .claude/skills/
+```
+
+Claude Code подхватит скил сам, когда задача касается логирования, маскирования или Logbook.
+
 ## Сборка
 
 ```bash
