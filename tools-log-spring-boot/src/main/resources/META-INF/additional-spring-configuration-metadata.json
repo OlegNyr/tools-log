@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "toolslog.servlet.secret-masking-filter.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Регистрировать ли фильтр, который сканирует входящие JSON-тела на секреты и регистрирует их для маскирования в логах."
+    },
+    {
+      "name": "toolslog.servlet.logbook-filter.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Регистрировать ли глобальный фильтр Logbook для входящего HTTP. false — сервис ставит LogbookFilter сам, например внутрь security-цепочки."
+    }
+  ]
+}

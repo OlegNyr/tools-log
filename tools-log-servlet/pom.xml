@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-servlet</artifactId>
+
+    <name>tools-log-servlet</name>
+    <description>tools-log for servlet applications: Logbook filter for incoming HTTP and filter that registers secrets found in request bodies for masking</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.servlet</module.name>
+        <toolslog.spring-allowed>false</toolslog.spring-allowed>
+    </properties>
+
+    <!-- Входящий HTTP в servlet-приложении без Spring: фильтр маскирования тела и всё для фильтра
+         Logbook. В Spring Boot оба фильтра регистрирует tools-log-spring-boot. -->
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-logbook</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-servlet</artifactId>
+        </dependency>
+        <!-- Servlet API даёт контейнер сервиса. -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

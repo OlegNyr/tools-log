@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-spring-boot</artifactId>
+
+    <name>tools-log-spring-boot</name>
+    <description>tools-log for Spring Boot: auto-configuration of the secret scanner, shared Logbook with header masking,
+        servlet filters, structured JSON encoder that takes service fields from the Spring Environment</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.boot</module.name>
+    </properties>
+
+    <!-- Spring-адаптер: автоконфигурация над классами модулей без Spring и encoder с полями сервиса из
+         Environment. Своего поведения нет — только сборка и настройки toolslog.*. Servlet и Logback —
+         optional: их подключает сервис, которому они нужны. -->
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-logbook</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- Фильтры входящего HTTP: optional — нужны только servlet-приложению. -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-servlet</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- SpringStructuredLogEncoder: optional — нужен, только если сервис пишет JSON-лог. -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-logback</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Веб-контекст для теста servlet-автоконфигурации; в рантайме его даёт приложение. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

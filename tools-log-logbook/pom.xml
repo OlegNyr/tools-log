@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-logbook</artifactId>
+
+    <name>tools-log-logbook</name>
+    <description>tools-log for Logbook: sink that writes HTTP-like exchanges as structured SLF4J events</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.logbook</module.name>
+        <toolslog.spring-allowed>false</toolslog.spring-allowed>
+    </properties>
+
+    <!-- Sink Logbook в SLF4J — общий для всех транспортов (входящий HTTP, Kafka, клиенты сервиса).
+         Без Spring: бин Logbook с маскированием заголовков собирает tools-log-spring-boot. -->
+    <dependencies>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+    </dependencies>
+</project>

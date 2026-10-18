@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-core</artifactId>
+
+    <name>tools-log-core</name>
+    <description>tools-log core: secret scanner over matchers, card number matcher, MDC and masking context propagation across threads</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.core</module.name>
+        <toolslog.spring-allowed>false</toolslog.spring-allowed>
+    </properties>
+
+    <!-- Реализации без Spring над tools-log-api: сканер на матчерах, матчер номеров карт, проброс MDC и
+         реестра секретов через потоки (context-propagation). -->
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <!-- ThreadLocalAccessor для MDC и реестра: optional — без context-propagation файл
+             ServiceLoader никто не читает. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

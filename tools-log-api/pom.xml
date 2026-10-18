@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-api</artifactId>
+
+    <name>tools-log-api</name>
+    <description>tools-log API: secret matcher to extend log masking with own secret classes, request-scoped
+        registry of secrets to mask, scanner contract; no dependencies beyond the JDK</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.api</module.name>
+        <toolslog.spring-allowed>false</toolslog.spring-allowed>
+    </properties>
+
+    <!-- То, что видит код сервиса: SecretMatcher для своих классов секретов, реестр секретов
+         запроса и контракт сканера. Без зависимостей, кроме JDK: сервис, который только расширяет
+         маскирование, тянет один этот jar. Реализации — tools-log-core. -->
+</project>

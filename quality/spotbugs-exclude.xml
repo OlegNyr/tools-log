@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Исключения SpotBugs/FindSecBugs для tools-log.
+
+  Подавляются только известные ложные срабатывания:
+    - классы, сгенерированные Lombok (@Value/@Builder выглядят странно для байткод-анализа);
+    - тестовый код.
+
+  Точечные подавления правил безопасности (Class + Bug) добавляются сюда только после ручного
+  разбора срабатывания и с условием, при котором подавление обязано сниматься.
+-->
+<FindBugsFilter>
+  <Match>
+    <!-- Lombok @Builder → вложенный класс "Builder"; @SuperBuilder → "<Class>Builder"
+         (+ абстрактный билдер). Шаблон покрывает оба варианта. -->
+    <Class name="~.*\$.*Builder.*"/>
+  </Match>
+  <Match>
+    <Class name="~.*\$BuilderImpl.*"/>
+  </Match>
+  <Match>
+    <!-- Lombok @SuperBuilder/@Value — поля final, конструктор не валидирует null. -->
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,EI_EXPOSE_REP3"/>
+  </Match>
+  <Match>
+    <!-- Тесты не проверяются правилами безопасности. -->
+    <Source name="~.*[Tt]est\.java"/>
+  </Match>
+</FindBugsFilter>

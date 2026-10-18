@@ -1,0 +1,3 @@
+io.github.olegnyr.toolslog.boot.MaskingAutoConfiguration
+io.github.olegnyr.toolslog.boot.LogbookAutoConfiguration
+io.github.olegnyr.toolslog.boot.ServletLogAutoConfiguration

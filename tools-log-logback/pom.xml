@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-logback</artifactId>
+
+    <name>tools-log-logback</name>
+    <description>tools-log for Logback: structured JSON encoder (ECS-like), encoder wrapper that masks registered secrets, turbo filter that keeps DEBUG/TRACE off for loggers carrying personal data</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.logback</module.name>
+        <toolslog.spring-allowed>false</toolslog.spring-allowed>
+    </properties>
+
+    <!-- Компоненты Logback, которые сервис подключает в logback.xml. Без Spring: encoder с полями
+         сервиса из Environment — в tools-log-spring-boot. -->
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

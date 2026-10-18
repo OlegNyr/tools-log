@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<ruleset name="tools-log-pmd"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+  <description>
+    PMD-набор tools-log: bestpractices + errorprone +
+    performance, минус те правила, которые конфликтуют с нашим стилем
+    (Lombok / package-by-feature) или с особенностями Spring Boot.
+  </description>
+
+  <!-- MapStruct/Lombok автоген — править руками нельзя, исключаем. -->
+  <exclude-pattern>.*/target/generated-sources/.*</exclude-pattern>
+  <exclude-pattern>.*/target/generated-test-sources/.*</exclude-pattern>
+
+  <rule ref="category/java/bestpractices.xml">
+    <!-- Допускаем @Test/@ParameterizedTest без assertions — assert идёт внутри helper'а.
+         (JUnitTestsShouldIncludeAssert переименован в PMD 7 в UnitTestShouldIncludeAssert.) -->
+    <exclude name="UnitTestShouldIncludeAssert"/>
+    <exclude name="UnitTestContainsTooManyAsserts"/>
+    <exclude name="UnitTestAssertionsShouldIncludeMessage"/>
+    <exclude name="UnitTestShouldUseTestAnnotation"/>
+    <!-- Классы тестов имеют package-private доступ + @Test — без public methods. -->
+    <exclude name="UnitTestShouldUseAfterAnnotation"/>
+    <exclude name="UnitTestShouldUseBeforeAnnotation"/>
+    <!-- @SuperBuilder / @Value создают не-final поля по дизайну Lombok'а. -->
+    <exclude name="GuardLogStatement"/>
+    <!-- UnusedLocalVariable исключаем здесь, чтобы ниже подключить отдельно
+         с override на violationSuppressXPath (разрешаем имя `ignore`/`ignored`/`_`
+         для intentionally-unused переменных, типичных в catch (Exception ignore)). -->
+    <exclude name="UnusedLocalVariable"/>
+  </rule>
+
+  <!-- UnusedLocalVariable — переподключаем с XPath-исключением для intentional ignores. -->
+  <rule ref="category/java/bestpractices.xml/UnusedLocalVariable">
+    <properties>
+      <property name="violationSuppressXPath"
+                value="//VariableId[@Name='ignore' or @Name='ignored' or @Name='_' or @Name='expected']"/>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/errorprone.xml">
+    <!-- AssignmentInOperand переподключается ниже с allowWhile: идиома
+         `while ((x = poll()) != null)` — стандартный drain-цикл. -->
+    <exclude name="AssignmentInOperand"/>
+    <!-- Конфликт с Lombok: @Value делает класс final, @Builder без @JsonCreator.
+         (BeanMembersShouldSerialize и DataflowAnomalyAnalysis удалены в PMD 7 —
+         exclude'ы сняты.) -->
+    <exclude name="MissingSerialVersionUID"/>
+    <!-- Test-наследование часто использует package-private классы. -->
+    <exclude name="TestClassWithoutTestCases"/>
+    <!-- Ruleset слишком агрессивен для Spring контроллеров. -->
+    <exclude name="AvoidLiteralsInIfCondition"/>
+    <!-- Ругается на null-checks в типичном MapStruct/Spring коде. -->
+    <exclude name="AvoidFieldNameMatchingMethodName"/>
+    <!-- Дублирующиеся литералы — не ошибка: тестовые URL'ы, имена топиков,
+         metric labels всё-равно повторяются по делу. -->
+    <exclude name="AvoidDuplicateLiterals"/>
+    <!-- NullAssignment: nullable-семантика поля — design choice (optional
+         payloads). Заменять на пустую строку не везде корректно —
+         меняет смысл (отсутствие значения != пустое значение). -->
+    <exclude name="NullAssignment"/>
+  </rule>
+
+  <!-- AssignmentInOperand: разрешаем присваивание в условии while — идиома
+       drain-циклов (`while ((event = queue.poll()) != null)`), запрет в if/for остаётся. -->
+  <rule ref="category/java/errorprone.xml/AssignmentInOperand">
+    <properties>
+      <property name="allowWhile" value="true"/>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/performance.xml">
+    <exclude name="AvoidInstantiatingObjectsInLoops"/>
+  </rule>
+
+  <rule ref="category/java/multithreading.xml">
+    <exclude name="UseConcurrentHashMap"/>
+    <exclude name="DoNotUseThreads"/>
+    <!-- volatile — легитимный инструмент (DCL-кеши, состояние WebSocket-сессии);
+         правило контроверсионно и в PMD помечено как candidate for removal. -->
+    <exclude name="AvoidUsingVolatile"/>
+  </rule>
+
+  <!-- codestyle.xml: в PMD 7.x точечный <rule ref="...xml/RuleName"> не блокирует
+       другие rule из того же файла, поэтому подключаем целиком и явно
+       exclude'им шумные. -->
+  <rule ref="category/java/codestyle.xml">
+    <!-- ShortVariable — codestyle §2 разрешает короткие имена для очевидных
+         контекстов (`id`, `ts`, `e`, `i` в for-loop, `ps`/`rs` в JDBC-handler'ах
+         и т.п.). -->
+    <exclude name="ShortVariable"/>
+    <!-- LongVariable — типичные builder-цепочки и MyBatis ResultMap-имена
+         встречаются длиннее любого разумного порога. -->
+    <exclude name="LongVariable"/>
+    <!-- UseExplicitTypes — codestyle §1.1 разрешает `var` где тип очевиден. -->
+    <exclude name="UseExplicitTypes"/>
+    <!-- LinguisticNaming — слишком формалистичен (требует get-/is-/has- префиксы
+         там, где у нас MapStruct/Lombok-генерируемые имена). -->
+    <exclude name="LinguisticNaming"/>
+    <!-- UnnecessaryFullyQualifiedName — конфликтует с MapStruct/MyBatis impl,
+         где FQN намеренный для clarity. -->
+    <exclude name="UnnecessaryFullyQualifiedName"/>
+    <!-- GenericsNaming — codestyle §2 разрешает параметры типа в форме UpperCamelCase с
+         суффиксом T (`RequestT`, `ItemT`), а правило требует одну букву; правило репозитория
+         главнее. -->
+    <exclude name="GenericsNaming"/>
+    <!-- Прочие шумные стилевые правила, не приносящие ценности на нашем коде. -->
+    <exclude name="OnlyOneReturn"/>
+    <exclude name="AtLeastOneConstructor"/>
+    <exclude name="CommentDefaultAccessModifier"/>
+    <exclude name="CallSuperInConstructor"/>
+    <exclude name="LocalVariableCouldBeFinal"/>
+    <exclude name="MethodArgumentCouldBeFinal"/>
+    <exclude name="ConfusingTernary"/>
+    <!-- ShortMethodName переподключаем ниже с XPath-исключением для коротких
+         factory-методов общего идиома (`of`, `to`, `is`). -->
+    <exclude name="ShortMethodName"/>
+  </rule>
+
+  <!-- ShortMethodName: разрешаем общеупотребительные factory-имена (`of`, `to`,
+       `is`) — стандартные fluent-идиомы (Optional.of, List.of, ...).
+       Остальные < 3 символов всё ещё ругаются. -->
+  <rule ref="category/java/codestyle.xml/ShortMethodName">
+    <properties>
+      <property name="violationSuppressXPath"
+                value="//MethodDeclaration[@Name='of' or @Name='to' or @Name='is' or @Name='by']"/>
+    </properties>
+  </rule>
+
+</ruleset>

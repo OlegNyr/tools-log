@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.olegnyr</groupId>
+        <artifactId>tools-log</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tools-log-spring-kafka</artifactId>
+
+    <name>tools-log-spring-kafka</name>
+    <description>tools-log for Spring Kafka: Logbook for consumed and produced records, trace context in consumer logs, MDC propagation through headers, builders of listener factories and templates</description>
+
+    <properties>
+        <module.name>io.github.olegnyr.toolslog.kafka</module.name>
+    </properties>
+
+    <!-- Kafka: записи пишутся в Logbook как HTTP-обмены; билдеры собирают типовую обвязку.
+         Автоконфигурации нет: бины собирает сервис билдерами. -->
+    <dependencies>
+        <!-- core, а не только api: MDC в callback продьюсера переносит MdcThreadLocalAccessor из SPI-файла core. -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- Метрики kafka_consumer_* / kafka_producer_*. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+        <!-- Только API трассировки: реализацию (Brave, OpenTelemetry) выбирает сервис. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing</artifactId>
+        </dependency>
+        <!-- ContextSnapshot: MDC вызывающего потока в callback продьюсера. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+        </dependency>
+        <!-- TTL-кеш незавершённых записей: если не вызвался ни success, ни failure (rebalance,
+             остановка контейнера), запись не копится. -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tools-log-logbook</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

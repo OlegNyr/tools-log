@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.olegnyr</groupId>
+    <artifactId>tools-log</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>tools-log</name>
+    <description>Logging toolkit for Spring Boot 4: structured JSON logs for Logback, Logbook for incoming and
+        outgoing HTTP and Kafka, masking of secrets and card numbers, MDC propagation across threads</description>
+    <inceptionYear>2026</inceptionYear>
+    <url>https://github.com/OlegNyr/tools-log</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>OlegNyr</id>
+            <name>Oleg Nyrkov</name>
+            <url>https://github.com/OlegNyr</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/OlegNyr/tools-log</url>
+        <connection>scm:git:https://github.com/OlegNyr/tools-log.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/OlegNyr/tools-log.git</developerConnection>
+    </scm>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <spring-boot.version>4.0.5</spring-boot.version>
+        <logbook.version>3.10.0</logbook.version>
+
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+
+        <!-- Модули без Spring ставят false: тогда enforcer валит сборку, если Spring попал в их
+             зависимости (кроме тестовых). -->
+        <toolslog.spring-allowed>true</toolslog.spring-allowed>
+
+        <!-- Профиль качества (-P quality). -->
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+        <checkstyle.version>10.21.4</checkstyle.version>
+        <maven-pmd-plugin.version>3.27.0</maven-pmd-plugin.version>
+        <pmd.version>7.10.0</pmd.version>
+        <spotbugs-maven-plugin.version>4.9.4.0</spotbugs-maven-plugin.version>
+        <find-sec-bugs.version>1.14.0</find-sec-bugs.version>
+
+        <!-- Профиль выкладки в Maven Central (-P release). -->
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
+        <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
+        <!-- Локально выкладка ждёт кнопки Publish на портале; CI по тегу публикует сразу
+             (-Dcentral.autoPublish=true). -->
+        <central.autoPublish>false</central.autoPublish>
+    </properties>
+
+    <!-- Порядок важен только для чтения: реактор сам выводит его из зависимостей. Spring нужен только
+         модулям tools-log-spring-*; api, core, logback, logbook и servlet работают без него. -->
+    <modules>
+        <module>tools-log-api</module>
+        <module>tools-log-core</module>
+        <module>tools-log-logback</module>
+        <module>tools-log-logbook</module>
+        <module>tools-log-servlet</module>
+        <module>tools-log-spring-boot</module>
+        <module>tools-log-spring-kafka</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Версии Spring, Jackson 3, Micrometer, Kafka, Logback, Caffeine, Lombok, JUnit — из BOM
+                 Spring Boot: библиотека совпадает по стеку с сервисами, которые её подключают. -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Logbook в BOM Boot не входит. -->
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>logbook-bom</artifactId>
+                <version>${logbook.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>tools-log-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>tools-log-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>tools-log-logback</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>tools-log-logbook</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>tools-log-servlet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Общее для всех модулей: Lombok только на компиляции, тестовый стек Spring Boot. -->
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <parameters>true</parameters>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>default-compile</id>
+                            <configuration>
+                                <annotationProcessorPaths>
+                                    <path>
+                                        <groupId>org.springframework.boot</groupId>
+                                        <artifactId>spring-boot-configuration-processor</artifactId>
+                                        <version>${spring-boot.version}</version>
+                                    </path>
+                                    <path>
+                                        <groupId>org.projectlombok</groupId>
+                                        <artifactId>lombok</artifactId>
+                                    </path>
+                                </annotationProcessorPaths>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>default-testCompile</id>
+                            <configuration>
+                                <annotationProcessorPaths>
+                                    <path>
+                                        <groupId>org.projectlombok</groupId>
+                                        <artifactId>lombok</artifactId>
+                                    </path>
+                                </annotationProcessorPaths>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <!-- Имя модуля JPMS задаёт каждый модуль свойством module.name. -->
+                                <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${versions-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>no-spring</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${toolslog.spring-allowed}</skip>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>org.springframework*:*:*:*:compile</exclude>
+                                        <exclude>org.springframework*:*:*:*:runtime</exclude>
+                                        <exclude>org.springframework*:*:*:*:provided</exclude>
+                                    </excludes>
+                                    <message>Модуль работает без Spring: Spring допустим только в тестах,
+                                        адаптеры — в tools-log-spring-*.</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Кладёт путь к jar mockito-core в свойство ${org.mockito:mockito-core:jar}: Mockito на
+                 Java 21+ подключается как -javaagent (без self-attach). Цель привязана к фазе
+                 initialize, поэтому тесты запускаются через фазы (test, verify), а не surefire:test. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Выкладка в Maven Central (-P release): исходники, Javadoc, подпись GPG и загрузка через
+             Central Portal. Учётные данные портала — сервер central в ~/.m2/settings.xml, ключ
+             GPG — в агенте либо через MAVEN_GPG_PASSPHRASE. Как выкладывать — RELEASING.md. -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <release>${java.version}</release>
+                            <encoding>UTF-8</encoding>
+                            <docencoding>UTF-8</docencoding>
+                            <charset>UTF-8</charset>
+                            <locale>ru</locale>
+                            <!-- Ссылки на методы, которые порождает Lombok, в исходниках не видны. -->
+                            <doclint>all,-missing,-reference</doclint>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <configuration>
+                            <!-- Пароль ключа — из MAVEN_GPG_PASSPHRASE, без диалога pinentry: так
+                                 подпись работает и в CI. -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <!-- Выложенную версию из Central не удалить. Вручную выкладка
+                                 проверяется на портале и публикуется кнопкой; CI по тегу
+                                 публикует сразу. Ждём только проверки портала: отказ (подпись,
+                                 POM, javadoc) валит сборку, а раскладку по зеркалам Central,
+                                 которая идёт до получаса, раннер не ждёт. -->
+                            <autoPublish>${central.autoPublish}</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- Профиль качества (-P quality): любое нарушение Checkstyle / PMD / SpotBugs валит сборку. -->
+        <profile>
+            <id>quality</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>${maven-checkstyle-plugin.version}</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.puppycrawl.tools</groupId>
+                                <artifactId>checkstyle</artifactId>
+                                <version>${checkstyle.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <configLocation>${maven.multiModuleProjectDirectory}/quality/checkstyle.xml</configLocation>
+                            <propertyExpansion>config_loc=${maven.multiModuleProjectDirectory}/quality</propertyExpansion>
+                            <consoleOutput>true</consoleOutput>
+                            <failsOnError>true</failsOnError>
+                            <failOnViolation>true</failOnViolation>
+                            <violationSeverity>error</violationSeverity>
+                            <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                            <linkXRef>false</linkXRef>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>checkstyle-validate</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-pmd-plugin</artifactId>
+                        <version>${maven-pmd-plugin.version}</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>net.sourceforge.pmd</groupId>
+                                <artifactId>pmd-core</artifactId>
+                                <version>${pmd.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>net.sourceforge.pmd</groupId>
+                                <artifactId>pmd-java</artifactId>
+                                <version>${pmd.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <rulesets>
+                                <ruleset>${maven.multiModuleProjectDirectory}/quality/pmd-ruleset.xml</ruleset>
+                            </rulesets>
+                            <printFailingErrors>true</printFailingErrors>
+                            <failOnViolation>true</failOnViolation>
+                            <includeTests>false</includeTests>
+                            <linkXRef>false</linkXRef>
+                            <targetJdk>${java.version}</targetJdk>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>pmd-check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${spotbugs-maven-plugin.version}</version>
+                        <configuration>
+                            <effort>Max</effort>
+                            <threshold>Medium</threshold>
+                            <failOnError>true</failOnError>
+                            <includeTests>false</includeTests>
+                            <excludeFilterFile>${maven.multiModuleProjectDirectory}/quality/spotbugs-exclude.xml</excludeFilterFile>
+                            <plugins>
+                                <plugin>
+                                    <groupId>com.h3xstream.findsecbugs</groupId>
+                                    <artifactId>findsecbugs-plugin</artifactId>
+                                    <version>${find-sec-bugs.version}</version>
+                                </plugin>
+                            </plugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>spotbugs-check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
